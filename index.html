@@ -1,0 +1,277 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<title>Sprite Editor</title>
+	<meta name="description" content="">
+	<link rel="icon" type="image/png" href="assets/favicon-512.png">
+
+	<!-- styles -->
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,500,600,700|Orbitron:400,500|Material+Icons"
+		rel="stylesheet">
+	<link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/main.css" type="text/css">
+
+	<!-- javascript -->
+	<script src="assets/js/lib/jszip.min.js"></script>
+	<script src="assets/js/lib/libgif.js"></script>
+	<!-- <script src="assets/js/lib/swim-system.js"></script> -->
+	<!-- <script src="assets/js/lib/default.js"></script> -->
+	<script src="assets/js/lib/dialog.js"></script>
+	<script src="assets/js/lib/importUtil.js"></script>
+	<script src="assets/js/index.js"></script>
+
+	<script>
+		window.page = null;
+
+		function start() {
+			window.page = new SpriteEditorPage();
+			window.page.initialize();
+		}
+	</script>
+</head>
+<!-- body -->
+
+<body class="page" onload="start()">
+	<header class="statusHeader" id="mainHeader">
+		<div class="headerTitle">
+			<h1>Sprite Editor</h1>
+			<!-- animation information row -->
+			<div class="infoRow">
+				<div>
+					Name: <input type="text" id="animName" style="text-align: left;" onchange="page.updateName()">
+				</div>
+				<div style="text-align: right;">
+					ID:<span id="nameIdValue"></span>
+				</div>
+			</div>
+
+		</div>
+		<nav>
+			<input type="button" class="menuButton" value="New" onclick="page.showDialog('newSpriteDialog')">
+			<input type="button" class="menuButton" value="Load" onclick="page.loadSprite()">
+			<input type="button" class="menuButton" value="Save" onclick="page.saveSprite()">
+			<input type="button" class="menuButton" value="Import" onclick="page.showDialog('importSpriteDialog')">
+		</nav>
+
+	</header>
+	<main class="main">
+		<!-- main panel container -->
+		<div class="gridPanel" id="layoutMain">
+			<!-- left column -->
+			<div class="gridCell">
+				<!-- animation preview section -->
+				<div class="cellPanel">
+
+
+
+					<!-- animation canvas -->
+					<div class="gridRow">
+						<div class="brushTools" id="brushTools">
+							<span class="material-icons on" id="brushButton"
+								onclick="page.selectTool('brush')">edit</span>
+							<span class="material-icons" id="eraserButton"
+								onclick="page.selectTool('eraser')">remove_circle_outline</span>
+							<span class="material-icons" id="dropperButton"
+								onclick="page.selectTool('dropper')">colorize</span>
+							<span class="material-icons" id="fillButton"
+								onclick="page.selectTool('fill')">format_paint</span>
+						</div>
+
+						<div id="pixelGrid">
+							<canvas id="pixelCanvas" width="12" height="6"></canvas>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+
+			<!-- right column -->
+			<div class="gridCell">
+				<!-- Color Pallette section -->
+				<div class="cellPanel">
+					<h3>Color Pallette</h3>
+					<div class="cellGrid6">
+						<div class="pixelPanel">
+							<!-- pallettes row -->
+							<div class="palletteRow">
+								<div id="colorPallette"></div>
+								<div id="activePalletteContainer">
+									<div id="activePallette"></div>
+								</div>
+							</div>
+
+							<!-- rgb color picker row -->
+							<div class="colorRow">
+								<div class="activeColors" onclick="page.toggleFgColorActive()">
+									<div id="backgroundColorChip"></div>
+									<div id="foregroundColorChip"></div>
+								</div>
+
+								<div class="colorSelectors">
+									R:<input type="number" maxlength="3" size="2" id="redInput"
+										onchange="page.updateSelectedColor()" min="0" max="255">
+									<input type="range" id="redInputRange" min="0" max="255" value="255"
+										onchange="page.updateColorFromSlider()">
+									G:<input type="number" maxlength="3" size="2" id="greenInput"
+										onchange="page.updateSelectedColor()" min="0" max="255">
+									<input type="range" id="greenInputRange" min="0" max="255" value="255"
+										onchange="page.updateColorFromSlider()">
+									B:<input type="number" maxlength="3" size="2" id="blueInput"
+										onchange="page.updateSelectedColor()" min="0" max="255">
+									<input type="range" id="blueInputRange" min="0" max="255" value="255"
+										onchange="page.updateColorFromSlider()">
+
+								</div>
+
+							</div>
+
+							<!-- tool buttons -->
+							<h6>Clear frame to:</h6>
+							<div class="palletteTools">
+								<input type="button" value="All Black" onclick="page.clearLedPixels()">
+								<input type="button" value="All White" onclick="page.clearLedPixels('255,255,255')">
+								<input type="button" value="All Selected" onclick="page.clearLedPixels('selected')">
+							</div>
+
+						</div>
+					</div>
+					<h3 class="cellBottom">&nbsp;</h3>
+				</div>
+
+				<div class="cellPanel">
+					<h3>Animation Panel</h3>
+					<!-- animation frames section -->
+					<div class="animationControlLabels">
+						<div>Frames</div>
+					</div>
+					<div class="infoRow">
+						<div>FPS: <input type="text" id="animSpeed" onchange="page.updateSpeed()" maxlength="3"
+								size="2"> </div>
+						<div style="text-align: center;">X: <span id="cursorXPos"></span> Y: <span
+								id="cursorYPos"></span></div>
+						<div style="text-align: right;">rgb: <span id="rgbAtCursor"></span></div>
+					</div>
+					<div id="framesPanel">
+						<div id="framesContainer">
+						</div>
+						<div class="framesControls">
+						</div>
+					</div>
+					<div class="animationControlLabels">
+						<div>Animation Controls</div>
+						&nbsp;
+						<div>Frame Tools</div>
+					</div>
+					<div class="animationControls">
+						<span class="material-icons" onclick="page.selectFrame(0)" title="First Frame">
+							fast_rewind
+						</span>
+						<span class="material-icons" onclick="page.selectFrame(page.selectedFrame-1)"
+							title="Previous Frame">
+							skip_previous
+						</span>
+						<span class="material-icons" onclick="page.toggleAnimationPreview()" id="playButton"
+							title="Play">
+							play_arrow
+						</span>
+						<span class="material-icons" onclick="page.selectFrame(page.selectedFrame+1)"
+							title="Next Frame">
+							skip_next
+						</span>
+						<span class="material-icons"
+							onclick="page.selectFrame(page.spriteList[page.selectedSprite].frames.length-1)"
+							title="Last Frame">
+							fast_forward
+						</span>
+						&nbsp;
+						<span class="material-icons" onclick="page.addFrame()" title="Add Frame">
+							add
+						</span>
+						<span class="material-icons" onclick="page.deleteFrame()" title="Remove Frame">
+							remove
+						</span>
+						<span class="material-icons" onclick="page.duplicateFrame()" title="Duplicate Frame">
+							file_copy
+						</span>
+
+					</div>
+					<h3 class="cellBottom">&nbsp;</h3>
+				</div>
+
+			</div>
+
+		</div>
+
+		<!-- used for importing piskel files -->
+		<div id="offscreenCanvas" style="display: block">
+
+		</div>
+
+		<!-- overlays section -->
+		<div id="overlayBg">
+			<div id="overlayFg">
+				<!-- overlay title -->
+				<h4 id="overlayTitle">&nbsp;</h4>
+				<div id="overlayContent">
+
+					<!-- import Gif dialog -->
+					<div id="importSpriteDialog">
+						<h5>Import Animation</h5>
+						<div style="font-size: 12px;">
+							Enter panel size:
+						</div>
+						<div>
+							W: <input type="text" id="importWidth" value="12" size="2" maxlength="3"
+								style="text-align: center;">
+							H: <input type="text" id="importHeight" value="6" size="2" maxlength="3"
+								style="text-align: center;">
+						</div>
+						<div class="dialogButtonRow">
+							<input type="button" value="Cancel" class="cancelButton" onclick="page.closeDialog()">
+							<input type="file" id="gifImportButton" accept=".gif,.piskel" style="width: 130px;">
+							<!-- <input type="button" value="Load" class="okButton" onclick="page.importGif()"> -->
+
+						</div>
+					</div>
+
+					<!-- new sprite dialog -->
+
+					<div id="newSpriteDialog">
+						<h5>New Sprite</h5>
+						<div style="font-size: 12px;">
+							Enter sprite size:
+						</div>
+						<div>
+							<form id="newSpriteForm" action="post">
+								W: <input type="text" id="spriteWidth" value="12" size="2" maxlength="3"
+									style="text-align: center;">
+								H: <input type="text" id="spriteHeight" value="6" size="2" maxlength="3"
+									style="text-align: center;">
+							</form>
+						</div>
+						<div class="dialogButtonRow">
+							<input type="button" value="Cancel" class="cancelButton" onclick="page.closeDialog()">
+							<input type="button" value="New" class="okButton" onclick="page.newSprite()">
+
+						</div>
+
+					</div>
+
+
+				</div>
+			</div>
+
+		</div>
+
+	</main>
+	<!-- /main -->
+
+</body>
+
+</html>
